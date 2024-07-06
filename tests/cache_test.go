@@ -1,15 +1,16 @@
-package cache
+package tests
 
 import (
 	"testing"
 	"time"
 
+	"github.com/ashuthe1/kuki-memcache/cache"
 	"github.com/ashuthe1/kuki-memcache/eviction"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCache(t *testing.T) {
-	c := NewCache(2*time.Second, 2, eviction.NewLRU(), nil)
+	c := cache.NewCache(2*time.Second, 2, eviction.NewLRU(), nil)
 
 	c.Set("key1", "value1")
 	c.Set("key2", "value2")
