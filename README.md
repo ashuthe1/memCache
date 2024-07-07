@@ -136,7 +136,7 @@ func main() {
 
 ### Supported Operations
 
-- **NewCache**: Create a new cache instance with TTL, maximum size, and an eviction policy.
+- **NewCache()**: Create a new cache instance with TTL, maximum size, and an eviction policy.
   - **Parameters**:
     - `ttl` (time.Duration): The time-to-live duration for each cache entry.
     - `maxSize` (int): The maximum number of items the cache can hold.
@@ -144,33 +144,33 @@ func main() {
     - `logger` (optional): A logger instance for logging cache operations (can be nil).
   - **Return Value**: A new cache instance.
 
-- **Set**: Add a key-value pair to the cache.
+- **Set()**: Add a key-value pair to the cache.
   - **Parameters**:
     - `key` (string): The key for the cache entry.
     - `value` (interface{}): The value to be stored in the cache.
   - **Return Value**: None.
 
-- **Get**: Retrieve a value associated with a key from the cache.
+- **Get()**: Retrieve a value associated with a key from the cache.
   - **Parameters**:
     - `key` (string): The key for the cache entry.
   - **Return Value**: A tuple containing:
     - `value` (interface{}): The value associated with the key, or `nil` if not found.
     - `isExists` (bool): A boolean indicating whether the key was found in the cache.
 
-- **Delete**: Remove a key-value pair from the cache.
+- **Delete()**: Remove a key-value pair from the cache.
   - **Parameters**:
     - `key` (string): The key for the cache entry.
   - **Return Value**: None.
 
-- **Hits**: Track cache hits.
+- **Hits()**: Track cache hits.
   - **Parameters**: None.
   - **Return Value**: An integer representing the number of cache hits.
 
-- **Misses**: Track cache misses.
+- **Misses()**: Track cache misses.
   - **Parameters**: None.
   - **Return Value**: An integer representing the number of cache misses.
 
-- **Expired**: Track expired items.
+- **Expired()**: Track expired items.
   - **Parameters**: None.
   - **Return Value**: An integer representing the number of expired cache items.
 
