@@ -42,8 +42,19 @@ func main() {
 	val, isExists := c.Get("key")
 	if !isExists {
 		fmt.Println("Key not found")
-		return
 	}
 
 	fmt.Println(val)
+
+	time.Sleep(3 * time.Second)
+	val, isExists = c.Get("okkkk")
+	if !isExists {
+		fmt.Println("Key not found")
+	}
+
+	fmt.Println(val)
+
+	fmt.Println(c.Expired())
+	fmt.Println(c.Hits())
+	fmt.Println(c.Misses())
 }

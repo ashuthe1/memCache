@@ -14,7 +14,7 @@ type CacheItem struct {
 }
 
 type Cache struct {
-	mu        sync.Mutex
+	mu        sync.RWMutex
 	items     map[string]CacheItem
 	ttl       time.Duration
 	maxSize   int
@@ -57,8 +57,8 @@ func (c *Cache) Set(key string, value interface{}) {
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	item, found := c.items[key]
 	if !found {
@@ -67,12 +67,20 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	}
 
 	if time.Now().After(item.ExpiresAt) {
-		delete(c.items, key)
-		c.policy.Remove(key)
-		c.benchmark.RecordExpiration()
-		if c.onEvicted != nil {
-			c.onEvicted(key, item.Value)
+		c.mu.RUnlock()
+		c.mu.Lock()
+		// Double-check if the item has expired during the unlock period
+		item, found = c.items[key]
+		if found && time.Now().After(item.ExpiresAt) {
+			delete(c.items, key)
+			c.policy.Remove(key)
+			c.benchmark.RecordExpiration()
+			if c.onEvicted != nil {
+				c.onEvicted(key, item.Value)
+			}
 		}
+		c.mu.Unlock()
+		c.mu.RLock()
 		return nil, false
 	}
 
@@ -94,13 +102,19 @@ func (c *Cache) Delete(key string) {
 }
 
 func (c *Cache) Hits() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.benchmark.Hits()
 }
 
 func (c *Cache) Misses() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.benchmark.Misses()
 }
 
 func (c *Cache) Expired() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.benchmark.Expired()
 }
