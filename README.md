@@ -139,7 +139,9 @@ func main() {
 - **Set**: Add a key-value pair to the cache.
 - **Get**: Retrieve a value associated with a key from the cache.
 - **Delete**: Remove a key-value pair from the cache.
-- **Statistics**: Track cache hits, misses, and expired items.
+- **Hits**: Track cache hits.
+- **Misses**: Track cache misses.
+- **Expired**: Track expired items.
 
 ### Running Tests
 

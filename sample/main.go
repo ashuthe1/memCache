@@ -44,5 +44,6 @@ func main() {
 		fmt.Println("Key not found")
 		return
 	}
+
 	fmt.Println(val)
 }
