@@ -18,9 +18,8 @@ func NewEvictionPolicy(policyType interface{}) EvictionPolicy {
 		return NewLRU()
 	case LIFO:
 		return NewLIFO()
-	case CustomEviction:
-		return NewCustom()
 	default:
-		panic(fmt.Sprintf("unsupported eviction policy type: %v", policyType))
+		fmt.Println("Invalid eviction policy type, using FIFO as default")
+		return NewFIFO()
 	}
 }
