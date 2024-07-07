@@ -6,7 +6,7 @@ This project implements an in-memory caching library in Golang with support for 
 
 - **Eviction Policies**: Supports FIFO, LRU, and LIFO eviction policies.
 - **Custom Eviction Policy**: Allows users to define and integrate custom eviction policies.
-- **Thread Safety**: Utilizes `sync.Mutex` for concurrent access safety.
+- **Thread Safety**: Utilizes `sync.RWMutex` for concurrent read/write access safety.
 - **Statistics**: Tracks cache hits, misses, and expired items.
 - **Benchmarking**: Basic benchmarking capabilities for cache operations.
 
@@ -53,8 +53,8 @@ Initialize a cache instance with your desired TTL (time-to-live), maximum size, 
 
 ```go
 func main() {
-	// Example: Create a cache with 2 seconds TTL, size of 2 items, and LRU eviction policy
-	c := cache.NewCache(2*time.Second, 2, eviction.NewLRU(), nil)
+	// Example: Create a cache with 20 minutes TTL, size of 10 items, and LRU eviction policy
+	c := cache.NewCache(20*time.Minute, 10, eviction.NewLRU(), nil)
 
 	// Set a key-value pair in the cache
 	c.Set("key", "value")
@@ -118,8 +118,8 @@ func (c *CustomEviction) Evict() string {
 }
 
 func main() {
-	// Example: Create a cache with 2 seconds TTL, size of 2 items, and custom eviction policy
-	c := cache.NewCache(2*time.Second, 2, NewCustom(), nil)
+	// Example: Create a cache with 20 minutes TTL, size of 10 items, and custom eviction policy
+	c := cache.NewCache(20*time.Minute, 10, NewCustom(), nil)
 
 	// Set a key-value pair in the cache
 	c.Set("key", "value")
@@ -136,12 +136,43 @@ func main() {
 
 ### Supported Operations
 
+- **NewCache**: Create a new cache instance with TTL, maximum size, and an eviction policy.
+  - **Parameters**:
+    - `ttl` (time.Duration): The time-to-live duration for each cache entry.
+    - `maxSize` (int): The maximum number of items the cache can hold.
+    - `evictionPolicy` (EvictionPolicy): The eviction policy to use (e.g., FIFO, LRU, LIFO, or a custom policy).
+    - `logger` (optional): A logger instance for logging cache operations (can be nil).
+  - **Return Value**: A new cache instance.
+
 - **Set**: Add a key-value pair to the cache.
+  - **Parameters**:
+    - `key` (string): The key for the cache entry.
+    - `value` (interface{}): The value to be stored in the cache.
+  - **Return Value**: None.
+
 - **Get**: Retrieve a value associated with a key from the cache.
+  - **Parameters**:
+    - `key` (string): The key for the cache entry.
+  - **Return Value**: A tuple containing:
+    - `value` (interface{}): The value associated with the key, or `nil` if not found.
+    - `isExists` (bool): A boolean indicating whether the key was found in the cache.
+
 - **Delete**: Remove a key-value pair from the cache.
+  - **Parameters**:
+    - `key` (string): The key for the cache entry.
+  - **Return Value**: None.
+
 - **Hits**: Track cache hits.
+  - **Parameters**: None.
+  - **Return Value**: An integer representing the number of cache hits.
+
 - **Misses**: Track cache misses.
+  - **Parameters**: None.
+  - **Return Value**: An integer representing the number of cache misses.
+
 - **Expired**: Track expired items.
+  - **Parameters**: None.
+  - **Return Value**: An integer representing the number of expired cache items.
 
 ### Running Tests
 
