@@ -57,45 +57,45 @@ func (c *Cache) Set(key string, value interface{}) {
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
-    // Initial read lock to safely access the cache
-    c.mu.RLock()
-    // Ensure the read lock is released when the function exits
-    defer c.mu.RUnlock()
+	// Initial read lock to safely access the cache
+	c.mu.RLock()
+	// Ensure the read lock is released when the function exits
+	defer c.mu.RUnlock()
 
-    // Check if the item exists in the cache
-    item, found := c.items[key]
-    if !found {
-        // Record a cache miss if the item is not found
-        c.benchmark.RecordMiss()
-        return nil, false
-    }
+	// Check if the item exists in the cache
+	item, found := c.items[key]
+	if !found {
+		// Record a cache miss if the item is not found
+		c.benchmark.RecordMiss()
+		return nil, false
+	}
 
-    // Check if the item has expired
-    if time.Now().After(item.ExpiresAt) {
-        // Upgrade to a write lock to modify the cache
-        c.mu.RUnlock()
-        c.mu.Lock()
-        // Double-check if the item is still expired after acquiring the write lock
-        item, found = c.items[key]
-        if found && time.Now().After(item.ExpiresAt) {
-            // Remove the expired item from the cache
-            delete(c.items, key)
-            c.policy.Remove(key)
-            c.benchmark.RecordExpiration()
-            if c.onEvicted != nil {
-                c.onEvicted(key, item.Value)
-            }
-        }
-        // Release the write lock and downgrade to a read lock
-        c.mu.Unlock()
-        c.mu.RLock()
+	// Check if the item has expired
+	if time.Now().After(item.ExpiresAt) {
+		// Upgrade to a write lock to modify the cache
+		c.mu.RUnlock()
+		c.mu.Lock()
+		// Double-check if the item is still expired after acquiring the write lock
+		item, found = c.items[key]
+		if found && time.Now().After(item.ExpiresAt) {
+			// Remove the expired item from the cache
+			delete(c.items, key)
+			c.policy.Remove(key)
+			c.benchmark.RecordExpiration()
+			if c.onEvicted != nil {
+				c.onEvicted(key, item.Value)
+			}
+		}
+		// Release the write lock and downgrade to a read lock
+		c.mu.Unlock()
+		c.mu.RLock()
 
-        return nil, false
-    }
+		return nil, false
+	}
 
-    // Record a cache hit if the item is found and not expired
-    c.benchmark.RecordHit()
-    return item.Value, true
+	// Record a cache hit if the item is found and not expired
+	c.benchmark.RecordHit()
+	return item.Value, true
 }
 
 func (c *Cache) Delete(key string) {
@@ -170,4 +170,27 @@ func (c *Cache) BatchGet(keys []string) map[string]interface{} {
 		}
 	}
 	return results
+}
+
+// Items returns all the items in the cache.
+func (c *Cache) Items() map[string]CacheItem {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	itemsCopy := make(map[string]CacheItem)
+	for key, item := range c.items {
+		itemsCopy[key] = item
+	}
+	return itemsCopy
+}
+
+// SetItems sets multiple items in the cache.
+func (c *Cache) SetItems(items map[string]CacheItem) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for key, item := range items {
+		c.items[key] = item
+		c.policy.Add(key)
+	}
 }
