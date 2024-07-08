@@ -55,6 +55,7 @@ func (c *Cache) Set(key string, value interface{}) {
 	}
 	c.policy.Add(key)
 }
+
 func (c *Cache) Get(key string) (interface{}, bool) {
     // Initial read lock to safely access the cache
     c.mu.RLock()
@@ -97,7 +98,6 @@ func (c *Cache) Get(key string) (interface{}, bool) {
     return item.Value, true
 }
 
-
 func (c *Cache) Delete(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -127,4 +127,47 @@ func (c *Cache) Expired() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.benchmark.Expired()
+}
+
+// BatchSet adds multiple key-value pairs to the cache.
+func (c *Cache) BatchSet(items map[string]interface{}) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for key, value := range items {
+		if len(c.items) >= c.maxSize {
+			evictedKey := c.policy.Evict()
+			if item, found := c.items[evictedKey]; found {
+				delete(c.items, evictedKey)
+				c.benchmark.RecordExpiration()
+				if c.onEvicted != nil {
+					c.onEvicted(evictedKey, item.Value)
+				}
+			}
+		}
+
+		c.items[key] = CacheItem{
+			Value:     value,
+			ExpiresAt: time.Now().Add(c.ttl),
+		}
+		c.policy.Add(key)
+	}
+}
+
+// BatchGet retrieves multiple key-value pairs from the cache.
+func (c *Cache) BatchGet(keys []string) map[string]interface{} {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	results := make(map[string]interface{})
+	for _, key := range keys {
+		item, found := c.items[key]
+		if found && time.Now().Before(item.ExpiresAt) {
+			results[key] = item.Value
+			c.benchmark.RecordHit()
+		} else {
+			c.benchmark.RecordMiss()
+		}
+	}
+	return results
 }
