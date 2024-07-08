@@ -4,13 +4,12 @@ This project implements an in-memory caching library in Golang with support for 
 
 ## Features
 
-- **Eviction Policies**: Supports FIFO, LRU, and LIFO eviction policies.
-- **Custom Eviction Policy**: Allows users to define and integrate custom eviction policies.
+- **Eviction Policies**: Supports FIFO, LRU, LIFO and allows user to define and integrate custom eviction policies.
 - **Thread Safety**: Utilizes `sync.RWMutex` for concurrent read/write access safety.
-- **Statistics**: Tracks cache hits, misses, and expired items.
-- **Complex Data Type Support**: Can store any type of value, including integers, strings, arrays, maps, and structs.
 - **Batch Processing**: Supports setting and getting multiple key-value pairs at once.
 - **Persistence Storage**: Save cache contents to a file and load from a file.
+- **Complex Data Type Support**: Can store any type of value, including integers, strings, arrays, maps, and structs.
+- **Statistics**: Tracks cache hits, misses, and expired items.
 
 ### Folder Structure
 ```
