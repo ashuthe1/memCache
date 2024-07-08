@@ -10,6 +10,7 @@ This project implements an in-memory caching library in Golang with support for 
 - **Statistics**: Tracks cache hits, misses, and expired items.
 - **Benchmarking**: Basic benchmarking capabilities for cache operations.
 - **Versatile Value Storage**: Can store any type of value, including integers, strings, arrays, maps, and structs.
+- **Batch Operations**: Supports setting and getting multiple key-value pairs at once.
 
 ## Setup
 
@@ -159,6 +160,41 @@ func main() {
 }
 ```
 
+### Batch Operations
+
+You can add and retrieve multiple key-value pairs at once using the `BatchSet` and `BatchGet` methods.
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/ashuthe1/kuki-memcache/cache"
+	"github.com/ashuthe1/kuki-memcache/eviction"
+)
+
+func main() {
+	c := cache.NewCache(20*time.Minute, 10, eviction.NewLRU(), nil)
+
+	// Batch set key-value pairs
+	items := map[string]interface{}{
+		"key1": "value1",
+		"key2": 123,
+		"key3": []int{1, 2, 3},
+	}
+	c.BatchSet(items)
+
+	// Batch get values
+	keys := []string{"key1", "key2", "key3"}
+	values := c.BatchGet(keys)
+	for k, v := range values {
+		fmt.Printf("%s: %v\n", k, v)
+	}
+}
+```
+
 ### Supported Operations
 
 - **NewCache()**: Create a new cache instance with TTL, maximum size, and an eviction policy.
@@ -181,6 +217,16 @@ func main() {
   - **Return Value**: A tuple containing:
     - `value` (interface{}): The value associated with the key, or `nil` if not found.
     - `isExists` (bool): A boolean indicating whether the key was found in the cache.
+
+- **BatchSet()**: Add multiple key-value pairs to the cache.
+  - **Parameters**:
+    - `items` (map[string]interface{}): The key-value pairs to be stored in the cache.
+  - **Return Value**: None.
+
+- **BatchGet()**: Retrieve multiple key-value pairs from the cache.
+  - **Parameters**:
+    - `keys` ([]string): The keys for the cache entries to be retrieved.
+  - **Return Value**: A map containing the key-value pairs that were found in the cache.
 
 - **Delete()**: Remove a key-value pair from the cache.
   - **Parameters**:
