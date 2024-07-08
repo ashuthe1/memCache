@@ -8,10 +8,9 @@ This project implements an in-memory caching library in Golang with support for 
 - **Custom Eviction Policy**: Allows users to define and integrate custom eviction policies.
 - **Thread Safety**: Utilizes `sync.RWMutex` for concurrent read/write access safety.
 - **Statistics**: Tracks cache hits, misses, and expired items.
-- **Benchmarking**: Basic benchmarking capabilities for cache operations.
-- **Versatile Value Storage**: Can store any type of value, including integers, strings, arrays, maps, and structs.
-- **Batch Operations**: Supports setting and getting multiple key-value pairs at once.
-- **Persistence**: Save cache contents to a file and load from a file.
+- **Complex Data Type Support**: Can store any type of value, including integers, strings, arrays, maps, and structs.
+- **Batch Processing**: Supports setting and getting multiple key-value pairs at once.
+- **Persistence Storage**: Save cache contents to a file and load from a file.
 
 ### Folder Structure
 ```
