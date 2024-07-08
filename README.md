@@ -1,6 +1,6 @@
 # In-Memory Caching Library
 
-This project implements an in-memory caching library in Golang with support for multiple eviction policies (FIFO, LRU, LIFO) and custom eviction policies.
+In-memory Thread Safe Caching Library in Golang with support for multiple eviction policies, Batch Processing and Persistence Storage
 
 ## Features
 
