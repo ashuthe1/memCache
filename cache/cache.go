@@ -88,13 +88,12 @@ func (c *Cache) Get(key string) (interface{}, bool) {
         // Release the write lock and downgrade to a read lock
         c.mu.Unlock()
         c.mu.RLock()
-        // Return nil and false indicating the item was not found or was expired
+
         return nil, false
     }
 
     // Record a cache hit if the item is found and not expired
     c.benchmark.RecordHit()
-    // Return the item's value and true indicating success
     return item.Value, true
 }
 
