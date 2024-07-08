@@ -55,38 +55,49 @@ func (c *Cache) Set(key string, value interface{}) {
 	}
 	c.policy.Add(key)
 }
-
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+    // Initial read lock to safely access the cache
+    c.mu.RLock()
+    // Ensure the read lock is released when the function exits
+    defer c.mu.RUnlock()
 
-	item, found := c.items[key]
-	if !found {
-		c.benchmark.RecordMiss()
-		return nil, false
-	}
+    // Check if the item exists in the cache
+    item, found := c.items[key]
+    if !found {
+        // Record a cache miss if the item is not found
+        c.benchmark.RecordMiss()
+        return nil, false
+    }
 
-	if time.Now().After(item.ExpiresAt) {
-		c.mu.RUnlock()
-		c.mu.Lock()
-		// Double-check if the item has expired during the unlock period
-		item, found = c.items[key]
-		if found && time.Now().After(item.ExpiresAt) {
-			delete(c.items, key)
-			c.policy.Remove(key)
-			c.benchmark.RecordExpiration()
-			if c.onEvicted != nil {
-				c.onEvicted(key, item.Value)
-			}
-		}
-		c.mu.Unlock()
-		c.mu.RLock()
-		return nil, false
-	}
+    // Check if the item has expired
+    if time.Now().After(item.ExpiresAt) {
+        // Upgrade to a write lock to modify the cache
+        c.mu.RUnlock()
+        c.mu.Lock()
+        // Double-check if the item is still expired after acquiring the write lock
+        item, found = c.items[key]
+        if found && time.Now().After(item.ExpiresAt) {
+            // Remove the expired item from the cache
+            delete(c.items, key)
+            c.policy.Remove(key)
+            c.benchmark.RecordExpiration()
+            if c.onEvicted != nil {
+                c.onEvicted(key, item.Value)
+            }
+        }
+        // Release the write lock and downgrade to a read lock
+        c.mu.Unlock()
+        c.mu.RLock()
+        // Return nil and false indicating the item was not found or was expired
+        return nil, false
+    }
 
-	c.benchmark.RecordHit()
-	return item.Value, true
+    // Record a cache hit if the item is found and not expired
+    c.benchmark.RecordHit()
+    // Return the item's value and true indicating success
+    return item.Value, true
 }
+
 
 func (c *Cache) Delete(key string) {
 	c.mu.Lock()
