@@ -11,8 +11,29 @@ This project implements an in-memory caching library in Golang with support for 
 - **Benchmarking**: Basic benchmarking capabilities for cache operations.
 - **Versatile Value Storage**: Can store any type of value, including integers, strings, arrays, maps, and structs.
 - **Batch Operations**: Supports setting and getting multiple key-value pairs at once.
+- **Persistence**: Save cache contents to a file and load from a file.
 
-## Setup
+### Folder Structure
+```
+kuki-memcache/
+├── cache/
+│   └── cache.go
+├── benchmark/
+│   └── benchmark.go
+├── eviction/
+│   ├── policy.go
+│   ├── fifo.go
+│   ├── lifo.go
+│   └── lru.go
+├── persistence/
+│   ├── file_persistence.go
+│   └── persistable.go
+├── test/
+│   └── cache_test.go
+├── sample/
+│   └── main.go
+└── README.md
+```
 
 ### Prerequisites
 
