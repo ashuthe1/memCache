@@ -1,11 +1,11 @@
 # In-Memory Caching Library
 
-In-memory Thread Safe Caching Library in Golang with support for multiple eviction policies, Batch Processing and Persistence Storage
+In-memory Thread Safe Caching Library in Golang with support for multiple eviction policies, Batch Processing, and Persistence Storage
 
 ## Features
 
 - **Eviction Policies**: Supports FIFO, LRU, LIFO and allows user to define and integrate custom eviction policies.
-- **Thread Safety**: Utilizes `sync.RWMutex` for concurrent read/write access safety.
+- **Thread Safe**: Utilizes `sync.RWMutex` for concurrent read/write access safely.
 - **Batch Processing**: Supports setting and getting multiple key-value pairs at once.
 - **Persistence Storage**: Save cache contents to a file and load from a file.
 - **Complex Data Type Support**: Can store any type of value, including integers, strings, arrays, maps, and structs.
@@ -77,8 +77,8 @@ func main() {
 	// Example: Create a cache with 20 minutes TTL, size of 10 items, and LRU eviction policy
 	c := cache.NewCache(20*time.Minute, 10, eviction.NewLRU(), nil)
 
-	// Set a key-value pair in the cache
-	c.Set("key", "value")
+	// Set a key-value pair in the cache with a specific TTL (e.g., 5 minutes)
+	c.Set("key", "value", 5*time.Minute)
 
 	// Get a value from the cache
 	val, isExists := c.Get("key")
@@ -218,16 +218,17 @@ func main() {
 
 - **NewCache()**: Create a new cache instance with TTL, maximum size, and an eviction policy.
   - **Parameters**:
-    - `ttl` (time.Duration): The time-to-live duration for each cache entry.
+    - `ttl` (time.Duration): The default time-to-live duration for each cache entry.
     - `maxSize` (int): The maximum number of items the cache can hold.
     - `evictionPolicy` (EvictionPolicy): The eviction policy to use (e.g., FIFO, LRU, LIFO, or a custom policy).
     - `logger` (optional): A logger instance for logging cache operations (can be nil).
   - **Return Value**: A new cache instance.
 
-- **Set()**: Add a key-value pair to the cache.
+- **Set()**: Add a key-value pair to the cache with an optional TTL.
   - **Parameters**:
     - `key` (string): The key for the cache entry.
     - `value` (interface{}): The value to be stored in the cache.
+    - `ttl` (optional, time.Duration): Time-to-live duration for the cache entry. If not provided, the default TTL is used.
   - **Return Value**: None.
 
 - **Get()**: Retrieve a value associated with a key from the cache.
@@ -237,9 +238,10 @@ func main() {
     - `value` (interface{}): The value associated with the key, or `nil` if not found.
     - `isExists` (bool): A boolean indicating whether the key was found in the cache.
 
-- **BatchSet()**: Add multiple key-value pairs to the cache.
+- **BatchSet()**: Add multiple key-value pairs to the cache with optional TTLs for each item.
   - **Parameters**:
     - `items` (map[string]interface{}): The key-value pairs to be stored in the cache.
+    - `ttl` (optional, time.Duration): Time-to-live duration for the cache entry. If not provided, the default TTL is used.
   - **Return Value**: None.
 
 - **BatchGet()**: Retrieve multiple key-value pairs from the cache.

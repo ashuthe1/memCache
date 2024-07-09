@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/ashuthe1/kuki-memcache/cache"
 )
@@ -66,6 +67,12 @@ func (fp *FilePersistence) LoadFromFile() (map[string]cache.CacheItem, error) {
 	err = json.Unmarshal(jsonData, &data)
 	if err != nil {
 		return nil, err
+	}
+
+	// Adjust expiration times based on current time
+	for key, item := range data {
+		item.ExpiresAt = time.Now().Add(item.TTL)
+		data[key] = item
 	}
 
 	return data, nil

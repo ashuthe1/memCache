@@ -11,6 +11,7 @@ import (
 type CacheItem struct {
 	Value     interface{}
 	ExpiresAt time.Time
+	TTL       time.Duration // To store individual TTL
 }
 
 type Cache struct {
@@ -34,26 +35,32 @@ func NewCache(ttl time.Duration, maxSize int, policy eviction.EvictionPolicy, on
 	}
 }
 
-func (c *Cache) Set(key string, value interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (c *Cache) Set(key string, value interface{}, ttl ...time.Duration) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
 
-	if len(c.items) >= c.maxSize {
-		evictedKey := c.policy.Evict()
-		if item, found := c.items[evictedKey]; found {
-			delete(c.items, evictedKey)
-			c.benchmark.RecordExpiration()
-			if c.onEvicted != nil {
-				c.onEvicted(evictedKey, item.Value)
-			}
-		}
-	}
+    if len(c.items) >= c.maxSize {
+        evictedKey := c.policy.Evict()
+        if item, found := c.items[evictedKey]; found {
+            delete(c.items, evictedKey)
+            c.benchmark.RecordExpiration()
+            if c.onEvicted != nil {
+                c.onEvicted(evictedKey, item.Value)
+            }
+        }
+    }
 
-	c.items[key] = CacheItem{
-		Value:     value,
-		ExpiresAt: time.Now().Add(c.ttl),
-	}
-	c.policy.Add(key)
+    itemTTL := c.ttl
+    if len(ttl) > 0 {
+        itemTTL = ttl[0]
+    }
+
+    c.items[key] = CacheItem{
+        Value:     value,
+        ExpiresAt: time.Now().Add(itemTTL),
+        TTL:       itemTTL, // Store the individual TTL
+    }
+    c.policy.Add(key)
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
@@ -130,28 +137,34 @@ func (c *Cache) Expired() int {
 }
 
 // BatchSet adds multiple key-value pairs to the cache.
-func (c *Cache) BatchSet(items map[string]interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (c *Cache) BatchSet(items map[string]interface{}, ttls ...time.Duration) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
 
-	for key, value := range items {
-		if len(c.items) >= c.maxSize {
-			evictedKey := c.policy.Evict()
-			if item, found := c.items[evictedKey]; found {
-				delete(c.items, evictedKey)
-				c.benchmark.RecordExpiration()
-				if c.onEvicted != nil {
-					c.onEvicted(evictedKey, item.Value)
-				}
-			}
-		}
+    itemTTL := c.ttl
+    if len(ttls) > 0 {
+        itemTTL = ttls[0]
+    }
 
-		c.items[key] = CacheItem{
-			Value:     value,
-			ExpiresAt: time.Now().Add(c.ttl),
-		}
-		c.policy.Add(key)
-	}
+    for key, value := range items {
+        if len(c.items) >= c.maxSize {
+            evictedKey := c.policy.Evict()
+            if item, found := c.items[evictedKey]; found {
+                delete(c.items, evictedKey)
+                c.benchmark.RecordExpiration()
+                if c.onEvicted != nil {
+                    c.onEvicted(evictedKey, item.Value)
+                }
+            }
+        }
+
+        c.items[key] = CacheItem{
+            Value:     value,
+            ExpiresAt: time.Now().Add(itemTTL),
+            TTL:       itemTTL,
+        }
+        c.policy.Add(key)
+    }
 }
 
 // BatchGet retrieves multiple key-value pairs from the cache.
